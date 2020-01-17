@@ -1,0 +1,18 @@
+---
+-  name: Playbook to operate Azure Storage
+    hosts: localhost
+    connection: localhost
+    tasks:
+    # 这两个任务主要是负责将Storage Account的 HttpsOnly 变为 True
+    - name: List All Storage Accounts in a subscription
+      command: az storage account list
+      register: allStorageAccounts
+      tags: sa_https_enable
+
+
+    - name:  Update HttpsOnly to True for All Storage Accounts
+      command: az storage account update -n {{ item.name }} -g {{ item.resourceGroup }} --https-only true
+      with_items: "{{ allStorageAccounts.stdout | from_json}}"
+      when: item.enableHttpsTrafficOnly == False
+      tags: sa_https_enable
+    # Done
